@@ -171,7 +171,7 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              How to Use SafeDrive
+              How to Use SafeDrive using AI
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Get started with SafeDrive in just a few simple steps and ensure your safety on every journey
