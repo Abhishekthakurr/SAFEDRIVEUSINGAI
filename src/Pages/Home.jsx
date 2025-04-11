@@ -42,6 +42,7 @@ export default function Home() {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(e => console.error("Error playing video:", e));
       }
       streamRef.current = stream;
       setCameraActive(true);
@@ -136,6 +137,7 @@ export default function Home() {
                     playsInline
                     muted
                     className="w-full h-full object-cover rounded-lg"
+                    style={{ transform: 'scaleX(-1)' }}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">

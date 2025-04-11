@@ -1,8 +1,53 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaEnvelope, FaLock, FaGoogle, FaGithub } from "react-icons/fa";
+import { useState } from "react";
+import { signup } from "../utils/auth";
 
 export default function Signup() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!e.target.terms.checked) {
+      setError('Please accept the Terms of Service and Privacy Policy');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { name, email, password } = formData;
+      await signup({ name, email, password });
+      navigate('/'); // Redirect to home after successful signup
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <motion.div
@@ -26,7 +71,12 @@ export default function Signup() {
         className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
       >
         <div className="bg-white/10 backdrop-blur-lg py-8 px-4 shadow-xl sm:rounded-xl sm:px-10">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <p className="text-sm text-red-100">{error}</p>
+              </div>
+            )}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-white">
                 Full Name
@@ -41,6 +91,8 @@ export default function Signup() {
                   type="text"
                   autoComplete="name"
                   required
+                  value={formData.name}
+                  onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-white/20 rounded-lg bg-white/10 placeholder-blue-300 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                   placeholder="Enter your full name"
                 />
@@ -61,6 +113,8 @@ export default function Signup() {
                   type="email"
                   autoComplete="email"
                   required
+                  value={formData.email}
+                  onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-white/20 rounded-lg bg-white/10 placeholder-blue-300 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                   placeholder="Enter your email"
                 />
@@ -81,6 +135,8 @@ export default function Signup() {
                   type="password"
                   autoComplete="new-password"
                   required
+                  value={formData.password}
+                  onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-white/20 rounded-lg bg-white/10 placeholder-blue-300 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                   placeholder="Create a password"
                 />
@@ -101,6 +157,8 @@ export default function Signup() {
                   type="password"
                   autoComplete="new-password"
                   required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-white/20 rounded-lg bg-white/10 placeholder-blue-300 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                   placeholder="Confirm your password"
                 />
@@ -131,9 +189,14 @@ export default function Signup() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                disabled={loading}
+                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white ${
+                  loading
+                    ? 'bg-blue-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors`}
               >
-                Create Account
+                {loading ? 'Creating Account...' : 'Create Account'}
               </motion.button>
             </div>
           </form>

@@ -1,8 +1,40 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaGoogle, FaGithub } from "react-icons/fa";
+import { useState } from "react";
+import { login } from "../utils/auth";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await login(formData);
+      navigate('/'); // Redirect to home after successful login
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-700 via-blue-800 to-blue-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -26,7 +58,12 @@ export default function Login() {
         className="mt-10 sm:mx-auto sm:w-full sm:max-w-md"
       >
         <div className="bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl py-10 px-6 rounded-2xl sm:px-10">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <p className="text-sm text-red-100">{error}</p>
+              </div>
+            )}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-white">
                 Email address
@@ -41,6 +78,8 @@ export default function Login() {
                   type="email"
                   autoComplete="email"
                   required
+                  value={formData.email}
+                  onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 rounded-lg bg-white/10 border border-white/30 placeholder-blue-300 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                   placeholder="Enter your email"
                 />
@@ -61,6 +100,8 @@ export default function Login() {
                   type="password"
                   autoComplete="current-password"
                   required
+                  value={formData.password}
+                  onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 rounded-lg bg-white/10 border border-white/30 placeholder-blue-300 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                   placeholder="Enter your password"
                 />
@@ -92,9 +133,14 @@ export default function Login() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 rounded-lg shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={loading}
+                className={`w-full flex justify-center py-3 px-4 rounded-lg shadow-lg text-sm font-semibold text-white ${
+                  loading
+                    ? 'bg-blue-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500'
+                } transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
               >
-                Sign in
+                {loading ? 'Signing in...' : 'Sign in'}
               </motion.button>
             </div>
           </form>
