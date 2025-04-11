@@ -1,12 +1,54 @@
 import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import HeroSlider from "../components/HeroSlider";
-import { FaCamera, FaCheck, FaBell, FaCar, FaShieldAlt } from "react-icons/fa";
+import LocationSearch from "../components/LocationSearch";
+import { 
+  FaCamera, FaCheck, FaBell, FaCar, FaShieldAlt, 
+  FaEye, FaBrain, FaUser, FaClock, FaExclamationTriangle,
+  FaChartLine, FaHeadSideMask, FaRoad, FaRegClock
+} from "react-icons/fa";
 
 export default function Home() {
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState("");
+  const [selectedTab, setSelectedTab] = useState("monitor");
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
+  const stats = [
+    {
+      icon: <FaHeadSideMask className="w-8 h-8 text-indigo-500" />,
+      title: "Alertness Level",
+      value: "Optimal",
+      color: "text-indigo-500",
+      bgColor: "bg-indigo-50",
+      metric: "98/100"
+    },
+    {
+      icon: <FaRegClock className="w-8 h-8 text-emerald-500" />,
+      title: "Session Duration",
+      value: "2h 15m",
+      color: "text-emerald-500",
+      bgColor: "bg-emerald-50",
+      metric: "Safe Range"
+    },
+    {
+      icon: <FaBell className="w-8 h-8 text-amber-500" />,
+      title: "Drowsiness Alerts",
+      value: "None",
+      color: "text-amber-500",
+      bgColor: "bg-amber-50",
+      metric: "Last 2 hours"
+    },
+    {
+      icon: <FaRoad className="w-8 h-8 text-blue-500" />,
+      title: "Drive Score",
+      value: "98%",
+      color: "text-blue-500",
+      bgColor: "bg-blue-50",
+      metric: "Top 5%"
+    }
+  ];
 
   const steps = [
     {
@@ -31,195 +73,235 @@ export default function Home() {
     },
   ];
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: 1280,
-          height: 720,
-          facingMode: "user"
-        } 
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(e => console.error("Error playing video:", e));
+  const handleCameraToggle = async () => {
+    if (cameraActive) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
-      streamRef.current = stream;
-      setCameraActive(true);
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("Unable to access camera. Please make sure you have granted camera permissions.");
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
-      streamRef.current = null;
-    }
-    setCameraActive(false);
-  };
-
-  const handleCameraToggle = () => {
-    if (cameraActive) {
-      stopCamera();
+      setCameraActive(false);
     } else {
-      startCamera();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 1280, height: 720 }
+        });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+          setCameraActive(true);
+        }
+      } catch (err) {
+        console.error("Error accessing camera:", err);
+        setCameraError("Camera access denied. Please check permissions.");
+      }
     }
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <HeroSlider />
-      
-      {/* Camera Section */}
-      <section className="relative py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
-        {/* Decorative Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full opacity-10 blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full opacity-10 blur-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      {/* Hero Section */}
+      <section className="relative h-[750px] bg-gradient-to-r from-blue-900 to-blue-700">
+        <div className="absolute inset-0">
+          <HeroSlider />
         </div>
-
-        <div className="relative container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Start Your Safe Journey Now
-            </h2>
-            <p className="text-xl text-blue-100 mb-10">
-              Our AI-powered system monitors your alertness in real-time, ensuring you stay safe on the road. 
-              Just enable your camera and let SafeDrive be your guardian angel.
-            </p>
-            
-            <motion.button
-              onClick={handleCameraToggle}
-              className={`group relative inline-flex items-center px-8 py-4 text-lg font-medium rounded-full transition-all duration-300 ${
-                cameraActive 
-                ? "bg-red-600 hover:bg-red-700" 
-                : "bg-blue-600 hover:bg-blue-700"
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <FaCamera className="w-6 h-6 mr-3" />
-              <span>{cameraActive ? "Stop Camera" : "Analyze Video"}</span>
-              <div className="absolute inset-0 rounded-full border-2 border-white/20 group-hover:scale-105 transition-transform"></div>
-            </motion.button>
-
-            {/* Camera Feed Container */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mt-8 p-4 bg-white/10 backdrop-blur-lg rounded-2xl overflow-hidden"
-            >
-              <div className="aspect-video bg-black/40 rounded-lg relative">
-                {cameraActive ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover rounded-lg"
-                    style={{ transform: 'scaleX(-1)' }}
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="text-blue-200">Click "Start Camera" to begin monitoring</p>
-                  </div>
-                )}
-              </div>
-              {cameraActive && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-4 p-3 bg-green-500/20 backdrop-blur-sm rounded-lg"
-                >
-                  <p className="text-green-100 flex items-center justify-center">
-                    <FaCheck className="w-5 h-5 mr-2" />
-                    Camera is active and monitoring
-                  </p>
-                </motion.div>
-              )}
-            </motion.div>
-          </motion.div>
+        <div className="relative container mx-auto px-4 h-full flex items-center">
+          <div className="max-w-2xl text-white">
+          </div>
         </div>
       </section>
 
       {/* How to Use Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              How to Use SafeDrive using AI
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Get started with SafeDrive in just a few simple steps and ensure your safety on every journey
-            </p>
-          </motion.div>
-
+          <h2 className="text-3xl font-bold text-center mb-12">How to Use SafeDrive AI</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="relative group"
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center"
               >
-                <div className="absolute inset-0 bg-blue-50 rounded-2xl transform group-hover:scale-105 transition-transform duration-300"></div>
-                <div className="relative p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-white rounded-2xl shadow-lg transform group-hover:-translate-y-2 transition-transform duration-300">
-                    {step.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-600">
-                    {step.description}
-                  </p>
+                <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  {step.icon}
                 </div>
+                <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+                <p className="text-gray-600">{step.description}</p>
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            viewport={{ once: true }}
-            className="mt-16 text-center"
-          >
-            <div className="inline-flex items-center p-1 rounded-full bg-blue-50">
-              <FaShieldAlt className="w-5 h-5 text-blue-600 mr-2" />
-              <span className="text-blue-900 font-medium">
-                Your safety is our top priority
-              </span>
+      {/* Dashboard Section */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          {/* Dashboard Header */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+            <div className="p-6 bg-gradient-to-r from-gray-900 to-gray-800 text-white">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-3xl font-bold">Driver Dashboard</h2>
+                  <p className="text-gray-300 mt-1">Real-time drowsiness detection system</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className={`flex items-center px-4 py-2 rounded-lg ${
+                    cameraActive 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'bg-gray-700/50 text-gray-400'
+                  }`}>
+                    <FaCamera className="w-5 h-5 mr-2" />
+                    {cameraActive ? 'Camera Active' : 'Camera Inactive'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tab Navigation */}
+              <div className="flex space-x-6 mt-8">
+                <button
+                  onClick={() => setSelectedTab("monitor")}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    selectedTab === "monitor"
+                      ? "bg-white/10 text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Live Monitor
+                </button>
+                <button
+                  onClick={() => setSelectedTab("stats")}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    selectedTab === "stats"
+                      ? "bg-white/10 text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Statistics
+                </button>
+              </div>
             </div>
-          </motion.div>
+          </div>
+
+          {/* Main Content */}
+          <div className="grid grid-cols-12 gap-8">
+            {/* Main Panel */}
+            <div className="col-span-12 lg:col-span-8">
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="aspect-video bg-gray-900 relative">
+                  {cameraActive ? (
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <FaCamera className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                        <p className="text-gray-400">Camera feed will appear here</p>
+                        <motion.button
+                          onClick={handleCameraToggle}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg font-medium flex items-center mx-auto"
+                        >
+                          <FaCamera className="w-5 h-5 mr-2" />
+                          Start Monitoring
+                        </motion.button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Overlay Controls */}
+                  {cameraActive && (
+                    <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
+                      <div className="flex justify-between items-center">
+                        <div className="text-white">
+                          <p className="font-medium">Status: Active Monitoring</p>
+                          <p className="text-sm text-gray-300">Duration: 2h 15m</p>
+                        </div>
+                        <motion.button
+                          onClick={handleCameraToggle}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="px-6 py-3 bg-red-500 text-white rounded-lg font-medium flex items-center"
+                        >
+                          <FaCamera className="w-5 h-5 mr-2" />
+                          Stop Camera
+                        </motion.button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Panel */}
+            <div className="col-span-12 lg:col-span-4 space-y-6">
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white p-6 rounded-2xl shadow-lg"
+                >
+                  <div className="flex items-center">
+                    <div className={`${stat.bgColor} p-4 rounded-xl`}>
+                      {stat.icon}
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="text-sm text-gray-500">{stat.title}</p>
+                      <div className="flex items-end justify-between">
+                        <p className={`text-2xl font-bold ${stat.color}`}>
+                          {stat.value}
+                        </p>
+                        <p className="text-sm text-gray-400">{stat.metric}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Location Search Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl font-bold text-center mb-12">Find Safe Routes</h2>
+              <LocationSearch />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+          {/* Alert Section */}
+          {cameraError && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 bg-red-50 border border-red-200 p-4 rounded-xl"
+            >
+              <div className="flex items-center">
+                <FaExclamationTriangle className="w-5 h-5 text-red-500 mr-3" />
+                <p className="text-red-700">{cameraError}</p>
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
     </div>

@@ -14,7 +14,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/dashboard" className="flex-shrink-0">
             <div className="w-48 h-12 relative">
               <span className="text-2xl font-bold text-blue-600">SafeDrive</span>
             </div>
@@ -22,8 +22,8 @@ const Header = () => {
 
           {/* Desktop Navigation Menu */}
           <nav className="hidden md:flex space-x-8">
-            <Link to="/" className="text-gray-600 hover:text-gray-900">
-              Home
+            <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">
+              Dashboard
             </Link>
             <Link to="/about" className="text-gray-600 hover:text-gray-900">
               About
@@ -38,7 +38,7 @@ const Header = () => {
 
           {/* Desktop User Actions */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/login" className="text-gray-600 hover:text-gray-900 flex flex-col items-center">
+            <Link to="/" className="text-gray-600 hover:text-gray-900 flex flex-col items-center">
               <FaUser size={20} />
               <span className="text-xs mt-1">Login</span>
             </Link>
@@ -49,7 +49,7 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <div className="flex items-center space-x-4 md:hidden">
-            <Link to="/login" className="text-gray-600 hover:text-gray-900">
+            <Link to="/" className="text-gray-600 hover:text-gray-900">
               <FaUser size={20} />
             </Link>
             <button
@@ -65,8 +65,8 @@ const Header = () => {
       {/* Mobile Menu */}
       <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'} bg-white border-t`}>
         <div className="px-4 pt-2 pb-4 space-y-3">
-          <Link to="/" className="block text-gray-600 hover:text-gray-900 py-2">
-            Home
+          <Link to="/dashboard" className="block text-gray-600 hover:text-gray-900 py-2">
+            Dashboard
           </Link>
           <Link to="/about" className="block text-gray-600 hover:text-gray-900 py-2">
             About
