@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/auth';
+const BASE_URL = 'https://safe-drive-using-ai-zkrl.onrender.com/auth';
 
 export const setAuthToken = (token) => {
   if (token) {
@@ -19,17 +19,27 @@ export const signup = async (userData) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData),
+      mode: 'cors',
+      body: JSON.stringify({
+        fullname: userData.name,
+        email: userData.email,
+        password: userData.password,
+        confirm_password: userData.confirmPassword
+      }),
     });
-    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(data.message || 'Signup failed');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Signup failed');
     }
+
+    const data = await response.json();
     if (data.token) {
       setAuthToken(data.token);
     }
     return data;
   } catch (error) {
+    console.error('Signup error:', error);
     throw error;
   }
 };
@@ -41,17 +51,25 @@ export const login = async (credentials) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(credentials),
+      mode: 'cors',
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password
+      }),
     });
-    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(data.message || 'Login failed');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Login failed');
     }
+
+    const data = await response.json();
     if (data.token) {
       setAuthToken(data.token);
     }
     return data;
   } catch (error) {
+    console.error('Login error:', error);
     throw error;
   }
 };
@@ -65,6 +83,7 @@ export const logout = async () => {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
+      mode: 'cors',
     });
     if (!response.ok) {
       const data = await response.json();

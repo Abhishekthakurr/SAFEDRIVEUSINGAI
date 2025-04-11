@@ -27,10 +27,15 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await login(formData);
-      navigate('/'); // Redirect to home after successful login
+      const response = await login(formData);
+      if (response && response.token) {
+        // Successful login with token
+        navigate('/', { replace: true });
+      } else {
+        setError('Login successful, but no authentication token received');
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to login. Please check your credentials.');
     } finally {
       setLoading(false);
     }

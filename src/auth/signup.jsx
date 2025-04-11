@@ -38,11 +38,15 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const { name, email, password } = formData;
-      await signup({ name, email, password });
-      navigate('/'); // Redirect to home after successful signup
+      const response = await signup(formData);
+      if (response && response.token) {
+        // Successful signup with token
+        navigate('/', { replace: true });
+      } else {
+        setError('Registration successful, but no authentication token received');
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to register. Please try again.');
     } finally {
       setLoading(false);
     }
